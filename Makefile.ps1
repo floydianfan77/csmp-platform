@@ -85,8 +85,15 @@ switch ($Target) {
     }
     "monitor-api" {
         Set-Location $Root
-        if (-not (Get-Command csmp-monitor-api -ErrorAction SilentlyContinue)) {
-            pip install -e (Join-Path $Root "services\monitor-api") -q
+        $MonitorPkg = Join-Path $Root "services\monitor-api"
+        $ImportOk = $false
+        try {
+            python -c "import csmp_monitor" 2>$null
+            if ($LASTEXITCODE -eq 0) { $ImportOk = $true }
+        } catch {}
+        if (-not $ImportOk) {
+            Write-Host "[monitor-api] installing monitor-api package ..."
+            pip install -e $MonitorPkg -q
         }
         $DuckDb = Join-Path $Root "data\csmp.duckdb"
         $LandingDb = Join-Path $Root "data\landing.db"
