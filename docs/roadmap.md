@@ -44,12 +44,12 @@ Prove the spec is testable before streaming code exists.
 - [x] dbt schema tests (signal_state accepted_values)
 - [x] AT-003, AT-005 pass (DuckDB local pipeline)
 
-## Phase 5 — Monitor API
+## Phase 5 — Monitor API ✅
 
-- [ ] Production FastAPI app from `monitor.v1.openapi.yaml` (FR-003)
-- [ ] Latest row per intersection from core
-- [ ] `/health` freshness vs NFR-001 (≤120s)
-- [ ] AT-004 passes
+- [x] Production FastAPI app from `monitor.v1.openapi.yaml` (FR-003)
+- [x] Latest row per intersection from core
+- [x] `/health` freshness vs NFR-001 (≤120s)
+- [x] AT-004 passes
 
 ## Phase 6 — Monitor UI (optional v0.2)
 

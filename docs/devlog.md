@@ -9,6 +9,29 @@ behind it, and next steps. Maintained at the end of each session so the project'
 
 ---
 
+## Session 6 — 2026-06-07 — Phase 5 (monitor API)
+
+### Context
+Core warehouse rows from Phase 4 need a read-only HTTP surface for monitoring tools
+and AT-004.
+
+### Decisions
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Data source | DuckDB `core_traffic_signals` | Matches local dev pipeline |
+| Latest grain | `ROW_NUMBER()` per intersection | FR-003 list + detail |
+| Freshness | `max(window_end)` lag vs 120s | NFR-001 / OpenAPI contract |
+
+### Actions
+- Added `services/monitor-api/` (FastAPI, repository, CLI `csmp-monitor-api`).
+- AT-004: 4 tests passed (health, list, bottleneck filter, 404).
+- `Makefile.ps1`: `install-monitor`, `test-monitor`, `monitor-api`.
+
+### Next steps
+- [ ] Phase 6 — Map UI (optional v0.2) or polish end-to-end demo script.
+
+---
+
 ## Session 5 — 2026-06-07 — Phase 4 (warehouse core)
 
 ### Context

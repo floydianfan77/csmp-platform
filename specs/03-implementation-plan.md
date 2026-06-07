@@ -70,11 +70,11 @@
 
 | Task | Delivers | Req |
 |------|----------|-----|
-| 5.1 | FastAPI app from `monitor.v1.openapi.yaml` | FR-003 |
-| 5.2 | Read-only query: latest per intersection | FR-003 |
-| 5.3 | `/health` with freshness vs NFR-001 | NFR-001 |
+| 5.1 | FastAPI app from `monitor.v1.openapi.yaml` | FR-003 | done |
+| 5.2 | Read-only query: latest per intersection | FR-003 | done |
+| 5.3 | `/health` with freshness vs NFR-001 | NFR-001 | done |
 
-**Exit criteria:** AT-004 passes.
+**Exit criteria:** AT-004 passes. **Complete.**
 
 ---
 

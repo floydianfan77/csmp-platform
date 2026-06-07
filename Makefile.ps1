@@ -19,6 +19,9 @@ function Show-Help {
     Write-Host "  test-acceptance  AT-001 (needs broker-up)"
     Write-Host "  test-flink        PyFlink AT-002 batch tests (needs Java)"
     Write-Host "  test-warehouse    AT-003 + AT-005 (DuckDB local dbt pipeline)"
+    Write-Host "  install-monitor   Install monitor API service"
+    Write-Host "  test-monitor      AT-004 monitor API tests"
+    Write-Host "  monitor-api       Run monitor API on :8000"
     Write-Host "  aggregate         Kafka -> SQLite landing (needs broker + messages)"
     Write-Host "  test-all          Contract + producer + flink + warehouse + acceptance"
     Write-Host "  producer         Run simulator to broker (1 batch)"
@@ -60,6 +63,18 @@ switch ($Target) {
         Set-Location $Root
         pytest tests/acceptance/test_at003_bottleneck.py tests/acceptance/test_at005_spatial.py -v
     }
+    "install-monitor" {
+        Set-Location (Join-Path $Root "services\monitor-api")
+        pip install -e ".[dev]"
+    }
+    "test-monitor" {
+        Set-Location $Root
+        pytest tests/acceptance/test_at004_monitor_api.py -v
+    }
+    "monitor-api" {
+        Set-Location $Root
+        csmp-monitor-api
+    }
     "test-acceptance" {
         Set-Location $Root
         pytest tests/acceptance -v -m integration
@@ -69,6 +84,7 @@ switch ($Target) {
         pytest tests/contract services/producer/tests -v
         pytest services/flink-job/tests/test_at002_window.py -v
         pytest tests/acceptance/test_at003_bottleneck.py tests/acceptance/test_at005_spatial.py -v
+        pytest tests/acceptance/test_at004_monitor_api.py -v
         pytest tests/acceptance -v -m integration
     }
     "producer" {
