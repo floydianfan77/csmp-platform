@@ -11,7 +11,7 @@ shippable on its own. Full task lists live in
 - [x] Human review + resolve open questions (API-only v0.1, local sink fallback)
 - [x] Git + GitHub Spec Kit (Cursor skills)
 
-## Phase 1 — Contracts & contract tests ✅ (current)
+## Phase 1 — Contracts & contract tests ✅
 
 Prove the spec is testable before streaming code exists.
 

@@ -26,3 +26,4 @@ dist/
 # Local data
 *.parquet
 *.db
+*.duckdb

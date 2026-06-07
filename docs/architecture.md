@@ -3,11 +3,10 @@
 ## Overview
 
 The Chapecó Smart Mobility Platform (CSMP) is a **realtime event-driven** pipeline
-that turns per-intersection traffic telemetry into a **monitor API** showing current
-signal state and bottleneck flags for Chapecó, SC.
+that turns per-intersection traffic telemetry into a **monitor API and map UI** showing
+current signal state and bottleneck flags for Chapecó, SC.
 
-This document grows with the project. Today it covers **Phases 0–1** (spec + contracts)
-and the target shape for Phases 2–5.
+**Status:** Phases 0–6 complete (spec → contracts → ingest → aggregate → warehouse → API → UI).
 
 ## Components
 
@@ -18,10 +17,10 @@ and the target shape for Phases 2–5.
 | `producer` | ✅ Phase 2 | Emit `chapeco-traffic-event` v1 to Redpanda |
 | Redpanda | ✅ Phase 2 | Durable event log (`chapeco-traffic-events`) |
 | `flink-job` | ✅ Phase 3 | 1-min windows → SQLite landing (local dev) |
+| `dbt` | ✅ Phase 4 | Staging + core models, bottleneck flag, GIS join |
+| `monitor-api` | ✅ Phase 5 | FastAPI read API from core tables |
+| `monitor-ui` | ✅ Phase 6 | Leaflet map (pt-BR), served at `/app/` |
 | BigQuery landing | 🔜 cloud target | `stg_raw_landing.traffic_signals_aggregated_stream` |
-| `dbt` | 🔜 Phase 4 | Staging + core models, bottleneck flag, GIS join |
-| `monitor-api` | 🔜 Phase 5 | FastAPI read API from core tables |
-| Monitor UI | ⏳ Phase 6 | Map layer (optional v0.2) |
 
 ## Key decisions
 
@@ -32,25 +31,25 @@ and the target shape for Phases 2–5.
   [`adr/0002-redpanda-event-backbone.md`](adr/0002-redpanda-event-backbone.md).
 - **Last-in-window signal state.** `signal_state` uses the **last event by timestamp**
   in each 1-minute window — never `MAX(string)`.
-- **Medallion-ish warehouse.** Landing (Flink) → staging view (dbt) → core incremental
+- **Medallion-ish warehouse.** Landing (Flink) → staging view (dbt) → core table
   (dbt) with merge on `(intersection_id, window_end)`.
 - **API reads core only.** The monitor never reads Kafka directly; freshness SLAs apply
   end-to-end (NFR-001: ≤120s to API).
 
-## Event flow (target)
+## Event flow
 
 ```
 simulator/producer --> topic: chapeco-traffic-events
                               |
-                         Flink (1-min windows)
+                         flink-job (1-min windows)
                               |
-              stg_raw_landing.traffic_signals_aggregated_stream
+                   traffic_signals_aggregated_stream (landing)
                               |
-                         dbt staging + core
+                         dbt staging + core (DuckDB local)
                               |
                          monitor-api (FastAPI)
                               |
-                         monitor UI (Phase 6)
+                         monitor-ui (/app/ — Leaflet)
 ```
 
 Detailed diagram: [`../specs/02-architecture.md`](../specs/02-architecture.md).
@@ -73,8 +72,9 @@ Detailed diagram: [`../specs/02-architecture.md`](../specs/02-architecture.md).
 
 ## Local dev network
 
-| Service | Host port | Internal |
-|---------|-----------|----------|
-| Redpanda Kafka | 19092 | redpanda:9092 |
-| Monitor API | 8000 | api:8000 |
-| Flink JobManager UI | 8081 | optional |
+| Service | Host port | Notes |
+|---------|-----------|-------|
+| Redpanda Kafka | 19092 | bootstrap for producer / flink-job |
+| Redpanda Console | 8080 | topic inspection |
+| Monitor API + UI | 8000 | `/app/` map, `/docs` OpenAPI |
+| Flink JobManager UI | 8081 | optional (PyFlink batch) |

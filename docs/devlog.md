@@ -27,7 +27,8 @@ OQ-1 resolved for v0.2: map UI on top of the working Monitor API.
 - AT-006: 5 contract + 4 acceptance tests.
 
 ### Next steps
-- Portfolio polish: README hero, optional screenshot in `docs/assets/`.
+- [x] Portfolio polish: README hero, screenshot in `docs/assets/`, `run-monitor.bat`.
+- [ ] Push to GitHub (`floydianfan77/csmp-platform` or similar).
 
 ---
 
