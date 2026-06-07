@@ -83,6 +83,7 @@ switch ($Target) {
         Set-Location $Root
         python (Join-Path $Root "scripts\fetch_osm_seed.py")
     }
+    "warehouse" {
         Set-Location $Root
         $env:PYTHONPATH = (Join-Path $Root "services\dbt")
         python (Join-Path $Root "services\dbt\local\build_warehouse.py")
