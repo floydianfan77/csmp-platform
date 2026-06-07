@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://csmp.local/contracts/seeds/chapeco_intersection_locations.v1.schema.json",
+  "title": "ChapecoIntersectionLocation",
+  "description": "Static intersection inventory for spatial enrichment (FR-005)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "intersection_id",
+    "display_name",
+    "latitude",
+    "longitude",
+    "source"
+  ],
+  "properties": {
+    "intersection_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "pt-BR label for monitor UI"
+    },
+    "latitude": {
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "longitude": {
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
+    },
+    "osm_node_id": {
+      "type": "integer",
+      "description": "OpenStreetMap node id when known"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["osm", "manual_fallback"]
+    }
+  }
+}

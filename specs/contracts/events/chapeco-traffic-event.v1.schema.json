@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://csmp.local/contracts/events/chapeco-traffic-event.v1.schema.json",
+  "title": "ChapecoTrafficEvent",
+  "description": "Per-intersection traffic telemetry event (CSMP v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_id", "intersection_id", "environment", "telemetry"],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id for idempotency and tracing"
+    },
+    "intersection_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "Stable intersection identifier (OSM node id or seed id)"
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["timestamp", "source"],
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Event time (ISO 8601 UTC)"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["simulator", "municipal_feed", "osm_probe"],
+          "description": "Origin of the event"
+        }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "current_signal_state",
+        "avg_stop_duration_seconds",
+        "avg_vehicle_speed_kmh"
+      ],
+      "properties": {
+        "current_signal_state": {
+          "type": "string",
+          "enum": ["GREEN", "RED", "YELLOW", "FLASHING_YELLOW", "UNKNOWN"]
+        },
+        "avg_stop_duration_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Average stop duration at approach (seconds)"
+        },
+        "avg_vehicle_speed_kmh": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Average vehicle speed near intersection (km/h)"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional tags (e.g. osm_node_id, lane_count)"
+    }
+  },
+  "examples": [
+    {
+      "event_id": "550e8400-e29b-41d4-a716-446655440000",
+      "intersection_id": "osm-123456789",
+      "environment": {
+        "timestamp": "2026-06-05T14:30:00Z",
+        "source": "simulator"
+      },
+      "telemetry": {
+        "current_signal_state": "RED",
+        "avg_stop_duration_seconds": 42.5,
+        "avg_vehicle_speed_kmh": 18.2
+      }
+    }
+  ]
+}

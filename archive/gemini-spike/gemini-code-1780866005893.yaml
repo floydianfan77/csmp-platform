@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: flink_infrastructure
+    database: chapeco-smart-mobility
+    schema: stg_raw_landing
+    tables:
+      - name: traffic_signals_aggregated_stream
+        description: "1-Minute rolling urban metrics generated via Flink execution contexts."
+        freshness:
+          warn_after: { count: 3, period: minute }
+          error_after: { count: 10, period: minute }
+        loaded_at_field: window_end

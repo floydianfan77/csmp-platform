@@ -1,0 +1,80 @@
+# Warehouse contract: stg_raw_landing.traffic_signals_aggregated_stream
+# Version: v1
+# Requirement: FR-002
+# Flink INSERT column order MUST match this DDL exactly.
+
+version: 2
+
+sources:
+  - name: raw_landing
+    description: Flink sink — 1-minute tumbling aggregates per intersection
+    database: stg_raw_landing
+    schema: stg_raw_landing
+    tables:
+      - name: traffic_signals_aggregated_stream
+        description: >
+          One row per (intersection_id, window_end). Written by Flink at-least-once.
+        loaded_at_field: ingested_at
+        freshness:
+          warn_after: { count: 3, period: minute }
+          error_after: { count: 10, period: minute }
+          filter: "window_end >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)"
+        columns:
+          - name: intersection_id
+            description: Intersection identifier (matches event key)
+            data_type: STRING
+            tests:
+              - not_null
+
+          - name: window_end
+            description: Exclusive end of 1-minute tumbling window (event time)
+            data_type: TIMESTAMP
+            tests:
+              - not_null
+
+          - name: signal_state
+            description: Last signal state in window by event_timestamp (NOT MAX lexicographic)
+            data_type: STRING
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['GREEN', 'RED', 'YELLOW', 'FLASHING_YELLOW', 'UNKNOWN']
+
+          - name: avg_stop_duration_seconds
+            description: Average stop duration in window
+            data_type: FLOAT64
+            tests:
+              - not_null
+
+          - name: avg_vehicle_speed_kmh
+            description: Average vehicle speed in window
+            data_type: FLOAT64
+            tests:
+              - not_null
+
+          - name: event_count
+            description: Number of source events in window
+            data_type: INT64
+            tests:
+              - not_null
+
+          - name: ingested_at
+            description: Flink sink insert time (processing time)
+            data_type: TIMESTAMP
+
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - intersection_id
+                - window_end
+
+# Reference DDL (BigQuery) — implementation must match
+# CREATE TABLE stg_raw_landing.traffic_signals_aggregated_stream (
+#   intersection_id STRING NOT NULL,
+#   window_end TIMESTAMP NOT NULL,
+#   signal_state STRING NOT NULL,
+#   avg_stop_duration_seconds FLOAT64 NOT NULL,
+#   avg_vehicle_speed_kmh FLOAT64 NOT NULL,
+#   event_count INT64 NOT NULL,
+#   ingested_at TIMESTAMP
+# );

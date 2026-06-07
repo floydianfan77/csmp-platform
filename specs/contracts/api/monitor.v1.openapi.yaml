@@ -1,0 +1,147 @@
+openapi: 3.1.0
+info:
+  title: CSMP Monitor API
+  version: 1.0.0
+  description: |
+    Read-only API for the Chapecó traffic semaphore monitor.
+    Requirement: FR-003. Data source: dbt core_traffic_signals (latest window per intersection).
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Service and data freshness health
+      tags: [system]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /intersections:
+    get:
+      operationId: listIntersections
+      summary: List all intersections with latest known state
+      tags: [intersections]
+      parameters:
+        - name: bottleneck_only
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: If true, return only severe bottlenecks (FR-004)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, count]
+                properties:
+                  count:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IntersectionStatus'
+
+  /intersections/{intersection_id}:
+    get:
+      operationId: getIntersection
+      summary: Latest status for one intersection
+      tags: [intersections]
+      parameters:
+        - name: intersection_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntersectionStatus'
+        '404':
+          description: Unknown intersection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, freshness_status, max_lag_seconds]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        freshness_status:
+          type: string
+          enum: [FRESH, STALE, UNKNOWN]
+          description: FRESH if max_lag_seconds <= 120 (NFR-001)
+        max_lag_seconds:
+          type: number
+          description: Max lag across intersections (event time to API read)
+        intersection_count:
+          type: integer
+
+    IntersectionStatus:
+      type: object
+      required:
+        - intersection_id
+        - signal_state
+        - window_end
+        - is_severe_bottleneck
+      properties:
+        intersection_id:
+          type: string
+        display_name:
+          type: string
+          description: Human label (pt-BR when available)
+        signal_state:
+          type: string
+          enum: [GREEN, RED, YELLOW, FLASHING_YELLOW, UNKNOWN]
+        avg_stop_duration_seconds:
+          type: number
+        avg_vehicle_speed_kmh:
+          type: number
+        is_severe_bottleneck:
+          type: boolean
+        window_end:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/GeoPoint'
+
+    GeoPoint:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
