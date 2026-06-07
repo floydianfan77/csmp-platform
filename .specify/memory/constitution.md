@@ -1,50 +1,48 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# CSMP Constitution
 
-## Core Principles
+Non-negotiable principles for the Chapecó Smart Mobility Platform.
+All specs, plans, and implementations must comply.
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+## 1. Contract-first
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+- Kafka events, warehouse tables, and the monitor API are defined in `specs/contracts/`
+  **before** producer, Flink, dbt, or API code is written.
+- Breaking contract changes require a **new version** (`v2`) and a migration note.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+## 2. Spec before code
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+- Every implementation PR references at least one `FR-*` or `NFR-*` ID.
+- Spike code and throwaway prototypes are **not** a specification.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+## 3. Testable acceptance
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+- Every functional requirement has at least one acceptance scenario in `specs/acceptance/`.
+- "Done" means acceptance tests pass — not "it compiles".
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## 4. Realtime semantics are explicit
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- "Realtime" is defined as **freshness SLAs** (see NFR-001), not marketing language.
+- Signal state in a window uses **last event by timestamp**, never `MAX(string)`.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## 5. Local-first development
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+- Full pipeline must run locally: Redpanda + Flink + (optional) BigQuery emulator or
+  local sink substitute documented in the plan.
+- Cloud (BigQuery) is a **deployment target**, not a dev blocker.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+## 6. At-least-once + idempotent sinks
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+- Stream sinks declare delivery guarantee explicitly.
+- Warehouse **core** layer uses merge/upsert on natural keys — safe to reprocess.
+
+## 7. Failure isolation
+
+- Invalid events are quarantined (dead-letter topic or file) — they do not block the stream.
+- Missing OSM seed data must not silently drop intersections (see FR-005).
+
+## 8. Documentation language
+
+- Specs: English (contracts and IDs).
+- User-facing monitor copy: Portuguese (pt-BR) when UI is built.
+
+**Version**: 1.0.0 | **Ratified**: 2026-06-07 | **Last Amended**: 2026-06-07

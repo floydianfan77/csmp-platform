@@ -23,6 +23,17 @@ constitution → requirements → architecture → contracts → acceptance
 **Rule:** No new service code until the relevant contract version is merged and
 acceptance criteria exist.
 
+## Spec Kit integration
+
+GitHub Spec Kit is initialized (`.specify/`, `.cursor/skills/`). Use it for **task
+breakdown and implementation loops**; keep **contracts and FR/NFR IDs** in this folder.
+
+| This folder (`specs/`) | Spec Kit (`.specify/`) |
+|------------------------|-------------------------|
+| Requirements, contracts, acceptance | Workflow scripts, task templates |
+| Source of truth for v1 contracts | `/speckit-tasks`, `/speckit-implement` |
+| `constitution.md` | Mirror in `.specify/memory/constitution.md` |
+
 ## Contract versions
 
 | Artifact | Version | Path |
