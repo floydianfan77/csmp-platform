@@ -16,6 +16,11 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, sans-serif;
@@ -74,6 +79,7 @@ body {
   display: grid;
   grid-template-columns: 320px 1fr;
   min-height: 0;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -171,7 +177,16 @@ body {
 }
 
 .map {
+  height: 100%;
+  width: 100%;
   min-height: 400px;
+  background: #dbeafe;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  font-family: "Segoe UI", system-ui, sans-serif;
 }
 
 .footer {

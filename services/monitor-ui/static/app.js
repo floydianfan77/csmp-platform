@@ -26,18 +26,35 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 const markerCluster = L.markerClusterGroup({
   showCoverageOnHover: false,
   maxClusterRadius: 45,
+  spiderfyOnMaxZoom: true,
+  zoomToBoundsOnClick: true,
 });
 map.addLayer(markerCluster);
 
 const markers = new Map();
 let activeId = null;
 let currentItems = [];
+let initialBoundsFit = false;
+let userFocusedMap = false;
 
 const healthBadge = document.getElementById("health-badge");
 const countLabel = document.getElementById("intersection-count");
 const listEl = document.getElementById("intersection-list");
 const bottleneckOnly = document.getElementById("bottleneck-only");
 const refreshBtn = document.getElementById("refresh-btn");
+
+function refreshMapSize() {
+  map.invalidateSize({ pan: false });
+}
+
+map.whenReady(() => {
+  refreshMapSize();
+  window.addEventListener("resize", refreshMapSize);
+});
+
+map.on("movestart", () => {
+  if (activeId) userFocusedMap = true;
+});
 
 const SIGNAL_COLORS = {
   GREEN: "#22c55e",
@@ -126,15 +143,21 @@ function speedLabel(item) {
 
 function focusIntersection(id) {
   activeId = id;
+  userFocusedMap = true;
   renderList(currentItems);
+
   const marker = markers.get(id);
-  if (marker) {
-    map.setView(marker.getLatLng(), Math.max(map.getZoom(), 15));
+  if (!marker) return;
+
+  markerCluster.zoomToShowLayer(marker, () => {
+    const targetZoom = Math.max(map.getZoom(), 17);
+    map.setView(marker.getLatLng(), targetZoom, { animate: true });
+    refreshMapSize();
     marker.openPopup();
-  }
+  });
 }
 
-function updateMarkers(items) {
+function updateMarkers(items, { refit = false } = {}) {
   const seen = new Set();
   const bounds = [];
 
@@ -164,8 +187,16 @@ function updateMarkers(items) {
     }
   }
 
-  if (bounds.length > 0) {
+  const shouldFit =
+    bounds.length > 0 &&
+    (!initialBoundsFit || refit) &&
+    !userFocusedMap &&
+    !activeId;
+
+  if (shouldFit) {
     map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+    initialBoundsFit = true;
+    refreshMapSize();
   }
 }
 
@@ -178,7 +209,7 @@ function setHealth(health) {
   }
 }
 
-async function loadData() {
+async function loadData({ refit = false } = {}) {
   const onlyBottlenecks = bottleneckOnly.checked;
   const query = onlyBottlenecks ? "?bottleneck_only=true" : "";
   const [healthRes, listRes] = await Promise.all([
@@ -197,11 +228,15 @@ async function loadData() {
   currentItems = body.items;
   setHealth(health);
   renderList(currentItems);
-  updateMarkers(currentItems);
+  updateMarkers(currentItems, { refit });
 }
 
-bottleneckOnly.addEventListener("change", loadData);
-refreshBtn.addEventListener("click", loadData);
+bottleneckOnly.addEventListener("change", () => {
+  userFocusedMap = false;
+  activeId = null;
+  loadData({ refit: true });
+});
+refreshBtn.addEventListener("click", () => loadData());
 
-loadData();
-setInterval(loadData, REFRESH_MS);
+loadData({ refit: true });
+setInterval(() => loadData(), REFRESH_MS);
