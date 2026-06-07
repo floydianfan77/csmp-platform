@@ -28,7 +28,7 @@ OQ-1 resolved for v0.2: map UI on top of the working Monitor API.
 
 ### Next steps
 - [x] Portfolio polish: README hero, screenshot in `docs/assets/`, `run-monitor.bat`.
-- [ ] Push to GitHub (`floydianfan77/csmp-platform` or similar).
+- [x] Push to GitHub: https://github.com/floydianfan77/csmp-platform
 
 ---
 

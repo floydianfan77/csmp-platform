@@ -3,6 +3,8 @@
 An open-source, event-driven **traffic semaphore monitor** for Chapecó, SC — built
 incrementally and **spec-first**. This is a learning/portfolio monorepo.
 
+**Repository:** https://github.com/floydianfan77/csmp-platform
+
 ![CSMP monitor map](docs/assets/monitor-map.png)
 
 *The Phase 6 map UI: Leaflet markers per intersection, pt-BR labels, bottleneck
