@@ -1,0 +1,11 @@
+csmp:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('DBT_GCP_PROJECT', 'csmp-dev') }}"
+      dataset: stg_raw_landing
+      threads: 4
+      timeout_seconds: 300
+      location: US

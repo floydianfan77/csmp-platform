@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traffic-producer"
+version = "0.1.0"
+description = "CSMP traffic telemetry simulator — publishes chapeco-traffic-event v1"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+]
+
+[project.optional-dependencies]
+broker = [
+    "confluent-kafka>=2.3",
+]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+traffic-producer = "traffic_producer.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

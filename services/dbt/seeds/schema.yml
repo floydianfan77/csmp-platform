@@ -1,0 +1,23 @@
+version: 2
+
+seeds:
+  - name: chapeco_intersection_locations
+    description: Fallback intersection inventory for Chapecó (FR-005)
+    columns:
+      - name: intersection_id
+        tests:
+          - unique
+          - not_null
+      - name: display_name
+        tests:
+          - not_null
+      - name: latitude
+        tests:
+          - not_null
+      - name: longitude
+        tests:
+          - not_null
+      - name: source
+        tests:
+          - accepted_values:
+              values: ['osm', 'manual_fallback']

@@ -1,0 +1,61 @@
+# ---------------------------------------------------------------------------
+# CSMP local development — Redpanda (Phase 2)
+#
+#   docker compose -f infra/docker-compose.yml up -d
+#
+# Host bootstrap:  localhost:19092
+# In-network:     redpanda:9092
+# Console:         http://localhost:8080
+# ---------------------------------------------------------------------------
+services:
+  redpanda:
+    image: redpandadata/redpanda:v24.2.4
+    container_name: csmp-redpanda
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp=1
+      - --memory=512M
+      - --reserve-memory=0M
+      - --node-id=0
+      - --check=false
+      - --kafka-addr=INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:19092
+      - --advertise-kafka-addr=INTERNAL://redpanda:9092,EXTERNAL://localhost:19092
+    ports:
+      - "19092:19092"
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "health"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redpanda-console:
+    image: redpandadata/console:v2.7.2
+    container_name: csmp-redpanda-console
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+    ports:
+      - "8080:8080"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+
+  producer:
+    build:
+      context: ..
+      dockerfile: services/producer/Dockerfile
+    container_name: csmp-producer
+    profiles: ["app"]
+    environment:
+      PRODUCER_SINK: broker
+      BROKER_BOOTSTRAP_SERVERS: redpanda:9092
+      PRODUCER_INTERVAL_SECONDS: "5"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+
+volumes:
+  redpanda-data:

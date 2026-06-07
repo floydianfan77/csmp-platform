@@ -1,0 +1,13 @@
+{
+  "event_id": "550e8400-e29b-41d4-a716-446655440000",
+  "intersection_id": "osm-123456789",
+  "environment": {
+    "timestamp": "2026-06-05T14:30:00Z",
+    "source": "simulator"
+  },
+  "telemetry": {
+    "current_signal_state": "RED",
+    "avg_stop_duration_seconds": 42.5,
+    "avg_vehicle_speed_kmh": 18.2
+  }
+}

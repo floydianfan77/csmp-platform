@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "csmp-flink-job"
+version = "0.1.0"
+description = "CSMP 1-minute window aggregation for traffic events (FR-002)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "pydantic-settings>=2.2",
+]
+
+[project.optional-dependencies]
+stream = [
+    "confluent-kafka>=2.3",
+]
+pyflink = [
+    "apache-flink==1.18.1; python_version < '3.13'",
+]
+dev = [
+    "pytest>=8.0",
+    "confluent-kafka>=2.3",
+]
+
+[project.scripts]
+csmp-flink-job = "flink_job.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -17,39 +17,39 @@
 
 ## Phase 1 — Contracts & contract tests
 
-| Task | Delivers | Req |
-|------|----------|-----|
-| 1.1 | JSON Schema validator tests for sample events | FR-001 |
-| 1.2 | OpenAPI mock tests (schemathesis or pytest + httpx against stub) | FR-003 |
-| 1.3 | dbt source YAML synced to warehouse contract | FR-002 |
-| 1.4 | Seed CSV/JSON for fallback intersections | FR-005 |
+| Task | Delivers | Req | Status |
+|------|----------|-----|--------|
+| 1.1 | JSON Schema validator tests for sample events | FR-001 | done |
+| 1.2 | OpenAPI mock tests (pytest + httpx against stub) | FR-003 | done |
+| 1.3 | dbt source YAML synced to warehouse contract | FR-002 | done |
+| 1.4 | Seed CSV/JSON for fallback intersections | FR-005 | done |
 
-**Exit criteria:** CI runs contract tests only — no Flink yet.
+**Exit criteria:** CI runs contract tests only — no Flink yet. **Complete.**
 
 ---
 
 ## Phase 2 — Local ingest path
 
-| Task | Delivers | Req |
-|------|----------|-----|
-| 2.1 | `docker-compose.yml` (Redpanda, ports per architecture) | NFR-002 |
-| 2.2 | Producer simulator conforming to event v1 | FR-001 |
-| 2.3 | DLQ topic + invalid event counter | NFR-004 |
-| 2.4 | Integration test: N events → topic → sample consumed | AT-001 |
+| Task | Delivers | Req | Status |
+|------|----------|-----|--------|
+| 2.1 | `docker-compose.yml` (Redpanda, ports per architecture) | NFR-002 | done |
+| 2.2 | Producer simulator conforming to event v1 | FR-001 | done |
+| 2.3 | DLQ topic + invalid event counter | NFR-004 | done |
+| 2.4 | Integration test: N events → topic → sample consumed | AT-001 | done |
 
-**Exit criteria:** AT-001 passes locally.
+**Exit criteria:** AT-001 passes locally (with Redpanda running). **Complete.**
 
 ---
 
 ## Phase 3 — Stream aggregation
 
-| Task | Delivers | Req |
-|------|----------|-----|
-| 3.1 | Flink job: LAST_VALUE signal_state, correct column mapping | FR-002 |
-| 3.2 | Sink to BQ **or** local Parquet/SQLite substitute for dev | OQ-2 |
-| 3.3 | Freshness metric on landing table | NFR-001 |
+| Task | Delivers | Req | Status |
+|------|----------|-----|--------|
+| 3.1 | Window job: MAX_BY signal_state, correct column mapping | FR-002 | done |
+| 3.2 | Sink to SQLite landing (`data/landing.db`) for dev | OQ-2 | done |
+| 3.3 | Freshness metric on landing table | NFR-001 | done |
 
-**Exit criteria:** AT-002 passes; no column order bugs.
+**Exit criteria:** AT-002 passes; no column order bugs. **Complete.**
 
 ---
 

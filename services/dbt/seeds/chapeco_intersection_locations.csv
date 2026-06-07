@@ -1,0 +1,5 @@
+intersection_id,display_name,latitude,longitude,osm_node_id,source
+osm-287654321,Av. Getúlio Vargas × Av. Nereu Ramos,-27.0964,-52.6181,287654321,manual_fallback
+osm-287654322,Av. São Pedro × Rua Coronel Passos Maia,-27.1012,-52.6098,287654322,manual_fallback
+osm-287654323,Av. Fernando Machado × Rua Bahia,-27.0948,-52.6155,287654323,manual_fallback
+osm-287654324,Rua Sete de Setembro × Av. Porto Alegre,-27.0987,-52.6120,287654324,manual_fallback

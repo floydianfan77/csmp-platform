@@ -1,0 +1,8 @@
+{
+  "event_id": "660e8400-e29b-41d4-a716-446655440001",
+  "intersection_id": "osm-123456789",
+  "environment": {
+    "timestamp": "2026-06-05T14:30:00Z",
+    "source": "simulator"
+  }
+}
