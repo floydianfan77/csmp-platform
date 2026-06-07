@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncIterator
 
 import duckdb
@@ -12,6 +13,24 @@ from csmp_monitor.repository import MonitorRepository
 from csmp_monitor.schemas import ErrorResponse, HealthResponse, IntersectionListResponse, IntersectionStatus
 
 
+def _open_duckdb_readonly() -> duckdb.DuckDBPyConnection:
+    path = Path(settings.duckdb_path)
+    if not path.is_file():
+        landing = path.parent / "landing.db"
+        hint = (
+            f"DuckDB file not found: {path}\n"
+            f"Run from project root: .\\Makefile.ps1 warehouse\n"
+            f"Or full pipeline: .\\Makefile.ps1 demo"
+        )
+        if landing.is_file():
+            hint = (
+                f"DuckDB file not found: {path}\n"
+                f"landing.db exists — run: .\\Makefile.ps1 warehouse"
+            )
+        raise FileNotFoundError(hint)
+    return duckdb.connect(str(path), read_only=True)
+
+
 def create_app(*, repository: MonitorRepository | None = None) -> FastAPI:
     owned: dict[str, duckdb.DuckDBPyConnection | None] = {"con": None}
 
@@ -20,7 +39,7 @@ def create_app(*, repository: MonitorRepository | None = None) -> FastAPI:
         if repository is not None:
             app.state.repository = repository
         else:
-            owned["con"] = duckdb.connect(settings.duckdb_path, read_only=True)
+            owned["con"] = _open_duckdb_readonly()
             app.state.repository = MonitorRepository.from_connection(owned["con"])
         yield
         if owned["con"] is not None:
