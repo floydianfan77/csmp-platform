@@ -6,11 +6,19 @@ import json
 import signal
 import sys
 import time
-from datetime import UTC, datetime
 
 from flink_job.config import Settings
 from flink_job.landing import init_landing_db, upsert_landing_rows
 from flink_job.window_state import aggregate_events, parse_kafka_json, rows_to_landing
+
+
+def should_arm_idle_timer(
+    written: int,
+    max_messages: int | None,
+    from_earliest: bool,
+) -> bool:
+    """Return True when the consumer should exit after an idle period."""
+    return written > 0 or max_messages is not None or from_earliest
 
 
 class StreamRunner:
@@ -22,7 +30,13 @@ class StreamRunner:
     def _handle_signal(self, _signum: int, _frame: object) -> None:
         self._stop = True
 
-    def run(self, *, max_messages: int | None = None, idle_seconds: float = 2.0) -> int:
+    def run(
+        self,
+        *,
+        max_messages: int | None = None,
+        idle_seconds: float = 2.0,
+        from_earliest: bool = False,
+    ) -> int:
         from confluent_kafka import Consumer
 
         signal.signal(signal.SIGINT, self._handle_signal)
@@ -34,7 +48,7 @@ class StreamRunner:
             {
                 "bootstrap.servers": self._settings.bootstrap_servers,
                 "group.id": self._settings.consumer_group,
-                "auto.offset.reset": "earliest" if max_messages else "latest",
+                "auto.offset.reset": "earliest" if from_earliest else "latest",
                 "enable.auto.commit": True,
             }
         )
@@ -42,22 +56,26 @@ class StreamRunner:
 
         written = 0
         idle_deadline: float | None = None
+        poll_seconds = 0.25
         try:
             while not self._stop:
-                msg = consumer.poll(1.0)
+                msg = consumer.poll(poll_seconds)
                 if msg is not None and not msg.error():
                     payload = json.loads(msg.value().decode("utf-8"))
                     self._buffer.append(parse_kafka_json(payload))
                     written += 1
                     idle_deadline = None
+                    print(
+                        f"[csmp-flink-job] consumed event {written}",
+                        file=sys.stderr,
+                    )
                     if max_messages is not None and written >= max_messages:
                         break
-                elif max_messages is not None and written >= max_messages:
-                    break
-                elif max_messages is None and written > 0 and idle_deadline is None:
-                    idle_deadline = time.time() + idle_seconds
-                elif idle_deadline is not None and time.time() >= idle_deadline:
-                    break
+                elif should_arm_idle_timer(written, max_messages, from_earliest):
+                    if idle_deadline is None:
+                        idle_deadline = time.time() + idle_seconds
+                    elif time.time() >= idle_deadline:
+                        break
         finally:
             consumer.close()
 

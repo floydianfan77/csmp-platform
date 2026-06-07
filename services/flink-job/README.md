@@ -23,8 +23,16 @@ pip install -e ".[pyflink]"
 
 ## Run
 
+Local drain (after `producer`) — exits ~2s after the last message:
+
 ```powershell
-csmp-flink-job --mode stream --max-messages 20 --landing-db ../../data/landing.db
+.\Makefile.ps1 producer
+.\Makefile.ps1 aggregate   # ~3–4 seconds for 4 events
+```
+
+Freshness check:
+
+```powershell
 csmp-flink-job --mode freshness --landing-db ../../data/landing.db
 ```
 

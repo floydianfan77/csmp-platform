@@ -22,7 +22,8 @@ function Show-Help {
     Write-Host "  install-monitor   Install monitor API service"
     Write-Host "  test-monitor      AT-004 monitor API tests"
     Write-Host "  monitor-api       Run monitor API on :8000"
-    Write-Host "  aggregate         Kafka -> SQLite landing (needs broker + messages)"
+    Write-Host "  aggregate         Kafka -> SQLite landing (drain topic, ~3s)"
+    Write-Host "  demo              broker-up + producer + aggregate + warehouse"
     Write-Host "  test-all          Contract + producer + flink + warehouse + acceptance"
     Write-Host "  producer         Run simulator to broker (1 batch)"
 }
@@ -57,7 +58,7 @@ switch ($Target) {
     }
     "aggregate" {
         Set-Location $Root
-        csmp-flink-job --mode stream --max-messages 20 --landing-db "$Root\data\landing.db"
+        csmp-flink-job --mode stream --from-earliest --idle-seconds 2 --landing-db "$Root\data\landing.db"
     }
     "test-warehouse" {
         Set-Location $Root
@@ -90,6 +91,14 @@ switch ($Target) {
     "producer" {
         Set-Location $Root
         traffic-producer --sink broker --bootstrap-servers localhost:19092 --max-batches 1
+    }
+    "demo" {
+        Set-Location $Root
+        docker compose -f $ComposeFile up -d
+        traffic-producer --sink broker --bootstrap-servers localhost:19092 --max-batches 1
+        csmp-flink-job --mode stream --from-earliest --idle-seconds 2 --landing-db "$Root\data\landing.db"
+        python -c "from pathlib import Path; from local.engine import run_pipeline; run_pipeline(landing_db=Path(r'$Root\data\landing.db'), seed_csv=Path(r'$Root\services\dbt\seeds\chapeco_intersection_locations.csv'), duckdb_path=Path(r'$Root\data\csmp.duckdb'))"
+        Write-Host "[demo] landing.db + csmp.duckdb ready. Run: .\Makefile.ps1 monitor-api"
     }
     default {
         Write-Error "Unknown target: $Target"

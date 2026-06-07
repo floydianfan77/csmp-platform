@@ -29,7 +29,18 @@ def _build_parser() -> argparse.ArgumentParser:
         "--max-messages",
         type=int,
         default=None,
-        help="Stop after N Kafka messages (stream mode).",
+        help="Optional cap on Kafka messages (stream mode). Drains until idle if fewer exist.",
+    )
+    parser.add_argument(
+        "--idle-seconds",
+        type=float,
+        default=2.0,
+        help="Stop after this many seconds with no new messages (stream mode).",
+    )
+    parser.add_argument(
+        "--from-earliest",
+        action="store_true",
+        help="Use earliest offset for new consumer groups (local drain after producer).",
     )
     return parser
 
@@ -51,7 +62,11 @@ def main() -> None:
         return
 
     runner = StreamRunner(settings)
-    runner.run(max_messages=args.max_messages)
+    runner.run(
+        max_messages=args.max_messages,
+        idle_seconds=args.idle_seconds,
+        from_earliest=args.from_earliest,
+    )
 
 
 if __name__ == "__main__":
