@@ -9,6 +9,31 @@ behind it, and next steps. Maintained at the end of each session so the project'
 
 ---
 
+## Session 5 — 2026-06-07 — Phase 4 (warehouse core)
+
+### Context
+Landing rows from Phase 3 need staging/core transforms, bottleneck flags, and spatial
+enrichment before the monitor API can query them.
+
+### Decisions
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Local warehouse | DuckDB + SQLite attach | OQ-2; no BigQuery creds for dev |
+| dbt targets | `dev` = DuckDB, `cloud` = BigQuery | Same SQL models; adapter switch |
+| AT tests | Python `local/engine.py` mirrors dbt SQL | Runnable without dbt CLI in CI |
+
+### Actions
+- Added dbt models: `stg_traffic_signals`, `core_traffic_signals`, `rpt_orphan_intersections`.
+- Macro `is_severe_bottleneck` (strict `> 75s` AND `< 5 km/h`).
+- DuckDB pipeline in `services/dbt/local/engine.py`.
+- AT-003 (5 tests) + AT-005 (2 tests) — 7 passed.
+- `Makefile.ps1`: `test-warehouse`.
+
+### Next steps
+- [ ] Phase 5 — Monitor API (AT-004).
+
+---
+
 ## Session 4 — 2026-06-07 — Phase 3 (stream aggregation)
 
 ### Context

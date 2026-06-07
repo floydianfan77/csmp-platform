@@ -14,10 +14,15 @@ clean-targets:
   - target
   - dbt_packages
 
+vars:
+  landing_db_path: "../../data/landing.db"
+
 models:
   csmp:
     staging:
       +materialized: view
+    core:
+      +materialized: table
 
 seeds:
   csmp:

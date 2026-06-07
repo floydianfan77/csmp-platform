@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: stg_traffic_signals
+    description: Cast and normalize landing aggregates (FR-002)
+    columns:
+      - name: intersection_id
+        tests: [not_null]
+      - name: window_end
+        tests: [not_null]
+      - name: signal_state
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['GREEN', 'RED', 'YELLOW', 'FLASHING_YELLOW', 'UNKNOWN']
+
+  - name: core_traffic_signals
+    description: Enriched core grain with bottleneck flag and GIS (FR-004, FR-005)
+    columns:
+      - name: is_severe_bottleneck
+        tests: [not_null]
+
+  - name: rpt_orphan_intersections
+    description: Intersections in landing but missing from seed (FR-005)

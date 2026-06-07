@@ -24,11 +24,12 @@ dev = [
     "confluent-kafka>=2.3",
     "pydantic>=2.6",
     "pydantic-settings>=2.2",
+    "duckdb>=1.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "services/producer/tests", "services/flink-job/tests"]
-pythonpath = [".", "services/producer/src", "services/flink-job/src"]
+pythonpath = [".", "services/producer/src", "services/flink-job/src", "services/dbt"]
 markers = [
     "integration: requires Redpanda at localhost:19092",
     "flink: requires Java + PyFlink",

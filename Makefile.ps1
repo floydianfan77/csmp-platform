@@ -18,8 +18,9 @@ function Show-Help {
     Write-Host "  test-producer    Producer unit tests"
     Write-Host "  test-acceptance  AT-001 (needs broker-up)"
     Write-Host "  test-flink        PyFlink AT-002 batch tests (needs Java)"
+    Write-Host "  test-warehouse    AT-003 + AT-005 (DuckDB local dbt pipeline)"
     Write-Host "  aggregate         Kafka -> SQLite landing (needs broker + messages)"
-    Write-Host "  test-all          Contract + producer + flink batch + acceptance"
+    Write-Host "  test-all          Contract + producer + flink + warehouse + acceptance"
     Write-Host "  producer         Run simulator to broker (1 batch)"
 }
 
@@ -55,6 +56,10 @@ switch ($Target) {
         Set-Location $Root
         csmp-flink-job --mode stream --max-messages 20 --landing-db "$Root\data\landing.db"
     }
+    "test-warehouse" {
+        Set-Location $Root
+        pytest tests/acceptance/test_at003_bottleneck.py tests/acceptance/test_at005_spatial.py -v
+    }
     "test-acceptance" {
         Set-Location $Root
         pytest tests/acceptance -v -m integration
@@ -63,6 +68,7 @@ switch ($Target) {
         Set-Location $Root
         pytest tests/contract services/producer/tests -v
         pytest services/flink-job/tests/test_at002_window.py -v
+        pytest tests/acceptance/test_at003_bottleneck.py tests/acceptance/test_at005_spatial.py -v
         pytest tests/acceptance -v -m integration
     }
     "producer" {

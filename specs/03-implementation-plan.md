@@ -57,12 +57,12 @@
 
 | Task | Delivers | Req |
 |------|----------|-----|
-| 4.1 | `stg_traffic_signals` view | FR-002 |
-| 4.2 | `core_traffic_signals` incremental + bottleneck | FR-004 |
-| 4.3 | Seed join + orphan report model | FR-005 |
-| 4.4 | dbt tests: unique grain, accepted_values signal_state | NFR-004 |
+| 4.1 | `stg_traffic_signals` view | FR-002 | done |
+| 4.2 | `core_traffic_signals` incremental + bottleneck | FR-004 | done |
+| 4.3 | Seed join + orphan report model | FR-005 | done |
+| 4.4 | dbt tests: unique grain, accepted_values signal_state | NFR-004 | done |
 
-**Exit criteria:** AT-003, AT-005 pass.
+**Exit criteria:** AT-003, AT-005 pass. **Complete.**
 
 ---
 

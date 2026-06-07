@@ -36,13 +36,13 @@ Prove the spec is testable before streaming code exists.
 - [x] Freshness helper `csmp-flink-job --mode freshness`
 - [x] AT-002 tests (window + landing acceptance)
 
-## Phase 4 — Warehouse core (dbt)
+## Phase 4 — Warehouse core (dbt) ✅
 
-- [ ] `stg_traffic_signals` view
-- [ ] `core_traffic_signals` incremental + `is_severe_bottleneck` (FR-004)
-- [ ] Seed join + orphan report model (FR-005)
-- [ ] dbt tests: grain, accepted_values
-- [ ] AT-003, AT-005 pass
+- [x] `stg_traffic_signals` view
+- [x] `core_traffic_signals` + `is_severe_bottleneck` (FR-004)
+- [x] Seed join + orphan report model (FR-005)
+- [x] dbt schema tests (signal_state accepted_values)
+- [x] AT-003, AT-005 pass (DuckDB local pipeline)
 
 ## Phase 5 — Monitor API
 

@@ -2,6 +2,13 @@ csmp:
   target: dev
   outputs:
     dev:
+      type: duckdb
+      path: "../../data/csmp.duckdb"
+      threads: 4
+      extensions:
+        - sqlite
+        - spatial
+    cloud:
       type: bigquery
       method: oauth
       project: "{{ env_var('DBT_GCP_PROJECT', 'csmp-dev') }}"
