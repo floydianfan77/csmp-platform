@@ -30,7 +30,7 @@ def test_ui_consumes_monitor_api():
 def test_ui_bottleneck_highlight_styles():
     css = (UI_DIR / "styles.css").read_text(encoding="utf-8")
     assert "bottleneck-pulse" in css
-    assert ".signal-marker.bottleneck" in css
+    assert "bottleneck-marker" in css
 
 
 def test_ui_signal_labels_pt_br():

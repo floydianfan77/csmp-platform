@@ -33,19 +33,24 @@ const listEl = document.getElementById("intersection-list");
 const bottleneckOnly = document.getElementById("bottleneck-only");
 const refreshBtn = document.getElementById("refresh-btn");
 
-function signalClass(state) {
-  return `signal-${(state || "UNKNOWN").toLowerCase()}`;
-}
+const SIGNAL_COLORS = {
+  GREEN: "#22c55e",
+  RED: "#ef4444",
+  YELLOW: "#eab308",
+  FLASHING_YELLOW: "#f97316",
+  UNKNOWN: "#94a3b8",
+};
 
-function markerIcon(item) {
-  const bottleneck = item.is_severe_bottleneck ? " bottleneck" : "";
-  const stateClass = signalClass(item.signal_state);
-  return L.divIcon({
-    className: "",
-    html: `<div class="signal-marker ${stateClass}${bottleneck}"></div>`,
-    iconSize: item.is_severe_bottleneck ? [24, 24] : [18, 18],
-    iconAnchor: item.is_severe_bottleneck ? [12, 12] : [9, 9],
-  });
+function markerOptions(item) {
+  const bottleneck = item.is_severe_bottleneck;
+  return {
+    radius: bottleneck ? 11 : 8,
+    fillColor: SIGNAL_COLORS[item.signal_state] || SIGNAL_COLORS.UNKNOWN,
+    color: bottleneck ? "#dc2626" : "#ffffff",
+    weight: bottleneck ? 3 : 2,
+    fillOpacity: 0.95,
+    className: bottleneck ? "bottleneck-marker" : "signal-marker",
+  };
 }
 
 function popupHtml(item) {
@@ -125,12 +130,12 @@ function updateMarkers(items) {
 
     let marker = markers.get(item.intersection_id);
     if (!marker) {
-      marker = L.marker(latlng, { icon: markerIcon(item) }).addTo(map);
+      marker = L.circleMarker(latlng, markerOptions(item)).addTo(map);
       marker.on("click", () => focusIntersection(item.intersection_id));
       markers.set(item.intersection_id, marker);
     } else {
       marker.setLatLng(latlng);
-      marker.setIcon(markerIcon(item));
+      marker.setStyle(markerOptions(item));
     }
     marker.bindPopup(popupHtml(item));
   }

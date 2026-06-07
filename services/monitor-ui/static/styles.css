@@ -186,37 +186,27 @@ body {
   color: #93c5fd;
 }
 
-/* Leaflet marker icons */
-.signal-marker {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+/* Leaflet circle markers — center sits exactly on lat/lng */
+path.signal-marker {
+  cursor: pointer;
 }
 
-.signal-marker.bottleneck {
-  width: 24px;
-  height: 24px;
-  border-width: 3px;
+path.bottleneck-marker {
+  cursor: pointer;
   animation: bottleneck-pulse 1.4s ease-in-out infinite;
 }
 
 @keyframes bottleneck-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.55);
+    stroke-opacity: 1;
+    fill-opacity: 0.95;
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+    stroke-opacity: 0.6;
+    fill-opacity: 0.75;
   }
 }
-
-.signal-green { background: var(--green); }
-.signal-red { background: var(--red); }
-.signal-yellow { background: var(--yellow); }
-.signal-flashing_yellow { background: var(--flash); }
-.signal-unknown { background: var(--unknown); }
 
 .leaflet-popup-content {
   font-family: "Segoe UI", system-ui, sans-serif;
