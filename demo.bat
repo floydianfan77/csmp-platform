@@ -4,8 +4,8 @@ setlocal
 cd /d "%~dp0"
 
 echo ---------------------------------------------------------------
-echo  CSMP demo — loading sample traffic data
-echo  This starts Redpanda, publishes events, and builds csmp.duckdb
+echo  CSMP demo — OpenStreetMap seed + sample traffic data
+echo  Downloads ~195 traffic signals for Chapeco, then publishes telemetry.
 echo ---------------------------------------------------------------
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Makefile.ps1" demo

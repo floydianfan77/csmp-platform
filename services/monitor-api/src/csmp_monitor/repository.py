@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import csv
 from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
 
+from csmp_monitor.config import settings
 from csmp_monitor.schemas import GeoPoint, HealthResponse, IntersectionStatus
+
+NO_TELEMETRY_WINDOW = "1970-01-01T00:00:00Z"
 
 LATEST_PER_INTERSECTION_SQL = """
 WITH ranked AS (
@@ -84,9 +88,54 @@ class MonitorRepository:
             location=location,
         )
 
-    def list_latest(self, *, bottleneck_only: bool = False) -> list[IntersectionStatus]:
+    def _load_seed_inventory(self) -> list[dict]:
+        path = Path(settings.seed_csv_path)
+        if not path.is_file():
+            return []
+        with path.open(encoding="utf-8", newline="") as handle:
+            return list(csv.DictReader(handle))
+
+    def _list_core_latest(self) -> list[IntersectionStatus]:
         rows = self._con.execute(LATEST_PER_INTERSECTION_SQL).fetchall()
-        items = [self._row_to_status(row) for row in rows]
+        return [self._row_to_status(row) for row in rows]
+
+    def _status_from_seed(self, seed_row: dict) -> IntersectionStatus:
+        return IntersectionStatus(
+            intersection_id=seed_row["intersection_id"],
+            display_name=seed_row["display_name"],
+            signal_state="UNKNOWN",
+            avg_stop_duration_seconds=None,
+            avg_vehicle_speed_kmh=None,
+            is_severe_bottleneck=False,
+            window_end=NO_TELEMETRY_WINDOW,
+            location=GeoPoint(
+                latitude=float(seed_row["latitude"]),
+                longitude=float(seed_row["longitude"]),
+            ),
+        )
+
+    def list_latest(self, *, bottleneck_only: bool = False) -> list[IntersectionStatus]:
+        core_by_id = {item.intersection_id: item for item in self._list_core_latest()}
+        seed_rows = self._load_seed_inventory()
+
+        if seed_rows:
+            items: list[IntersectionStatus] = []
+            for seed_row in seed_rows:
+                intersection_id = seed_row["intersection_id"]
+                item = core_by_id.get(intersection_id) or self._status_from_seed(seed_row)
+                if item.location is None and seed_row.get("latitude") and seed_row.get("longitude"):
+                    item = item.model_copy(
+                        update={
+                            "location": GeoPoint(
+                                latitude=float(seed_row["latitude"]),
+                                longitude=float(seed_row["longitude"]),
+                            )
+                        }
+                    )
+                items.append(item)
+        else:
+            items = list(core_by_id.values())
+
         if bottleneck_only:
             items = [item for item in items if item.is_severe_bottleneck]
         return items
@@ -99,12 +148,13 @@ class MonitorRepository:
 
     def health(self, *, threshold_seconds: float = 120.0) -> HealthResponse:
         count = self._con.execute("SELECT COUNT(*) FROM core_traffic_signals").fetchone()[0]
+        inventory = self.list_latest()
         if count == 0:
             return HealthResponse(
                 status="degraded",
                 freshness_status="UNKNOWN",
                 max_lag_seconds=0.0,
-                intersection_count=0,
+                intersection_count=len(inventory),
             )
 
         max_window = self._con.execute("SELECT MAX(window_end) FROM core_traffic_signals").fetchone()[0]
@@ -113,7 +163,7 @@ class MonitorRepository:
                 status="degraded",
                 freshness_status="UNKNOWN",
                 max_lag_seconds=0.0,
-                intersection_count=0,
+                intersection_count=len(inventory),
             )
 
         if isinstance(max_window, str):
@@ -125,9 +175,10 @@ class MonitorRepository:
 
         lag = max(0.0, (datetime.now(tz=UTC) - max_dt).total_seconds())
         fresh = lag <= threshold_seconds
+        with_telemetry = sum(1 for item in inventory if item.window_end != NO_TELEMETRY_WINDOW)
         return HealthResponse(
-            status="ok" if fresh else "degraded",
-            freshness_status="FRESH" if fresh else "STALE",
-            max_lag_seconds=lag,
-            intersection_count=len(self.list_latest()),
+            status="ok" if fresh and with_telemetry > 0 else "degraded",
+            freshness_status="FRESH" if fresh and with_telemetry > 0 else "UNKNOWN",
+            max_lag_seconds=lag if with_telemetry > 0 else 0.0,
+            intersection_count=len(inventory),
         )

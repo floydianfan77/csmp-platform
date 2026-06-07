@@ -70,7 +70,7 @@ def create_app(*, repository: MonitorRepository | None = None) -> FastAPI:
             threshold_seconds=settings.freshness_threshold_seconds
         )
 
-    @app.get("/intersections", response_model=IntersectionListResponse)
+    @app.get("/intersections", response_model=IntersectionListResponse, response_model_exclude_none=True)
     def list_intersections(
         request: Request,
         bottleneck_only: bool = False,
@@ -81,6 +81,7 @@ def create_app(*, repository: MonitorRepository | None = None) -> FastAPI:
     @app.get(
         "/intersections/{intersection_id}",
         response_model=IntersectionStatus,
+        response_model_exclude_none=True,
         responses={404: {"model": ErrorResponse}},
     )
     def get_intersection(request: Request, intersection_id: str):

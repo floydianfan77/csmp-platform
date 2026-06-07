@@ -95,8 +95,8 @@ Expected: **22+ passed**. No Docker or cloud credentials needed.
 
 ## See the map (full local stack)
 
-**First time:** double-click **`demo.bat`** (starts Redpanda, publishes sample events,
-builds `data/csmp.duckdb`).
+**First time:** double-click **`demo.bat`** (downloads ~195 semáforos from OpenStreetMap,
+loads sample telemetry, builds `data/csmp.duckdb`).
 
 **Then:** double-click **`run-monitor.bat`** — opens the map at
 **http://127.0.0.1:8000/app/** and API docs at `/docs`.

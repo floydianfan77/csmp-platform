@@ -13,6 +13,14 @@ ROOT = Path(__file__).resolve().parents[2]
 SEED_CSV = ROOT / "services" / "dbt" / "seeds" / "chapeco_intersection_locations.csv"
 
 
+def _sample_id() -> str:
+    import csv
+
+    with SEED_CSV.open(encoding="utf-8", newline="") as handle:
+        row = next(csv.DictReader(handle))
+    return row["intersection_id"]
+
+
 @pytest.fixture
 def warehouse(tmp_path):
     landing_db = tmp_path / "landing.db"
@@ -33,14 +41,15 @@ def _row(intersection_id: str, stop: float, speed: float) -> dict:
 
 def _flag(warehouse, stop: float, speed: float) -> bool:
     landing_db, seed_csv = warehouse
-    write_landing_rows(landing_db, [_row("osm-287654321", stop, speed)])
+    sample_id = _sample_id()
+    write_landing_rows(landing_db, [_row(sample_id, stop, speed)])
     con = run_pipeline(landing_db=landing_db, seed_csv=seed_csv)
     return bool(
         con.execute(
-            """
+            f"""
             SELECT is_severe_bottleneck
             FROM core_traffic_signals
-            WHERE intersection_id = 'osm-287654321'
+            WHERE intersection_id = '{sample_id}'
             """
         ).fetchone()[0]
     )

@@ -25,7 +25,8 @@ function Show-Help {
     Write-Host "  warehouse         landing.db -> csmp.duckdb (required before monitor-api)"
     Write-Host "  monitor-api       Build warehouse if needed, run API on :8000"
     Write-Host "  aggregate         Kafka -> SQLite landing (drain topic, ~3s)"
-    Write-Host "  demo              broker-up + producer + aggregate + warehouse"
+    Write-Host "  fetch-seed        Download Chapeco traffic signals from OpenStreetMap"
+    Write-Host "  demo              fetch-seed + broker + producer + aggregate + warehouse"
     Write-Host "  test-all          Contract + producer + flink + warehouse + acceptance"
     Write-Host "  producer         Run simulator to broker (1 batch)"
 }
@@ -78,7 +79,10 @@ switch ($Target) {
         Set-Location $Root
         pytest tests/contract/test_monitor_ui.py tests/acceptance/test_at006_monitor_ui.py -v
     }
-    "warehouse" {
+    "fetch-seed" {
+        Set-Location $Root
+        python (Join-Path $Root "scripts\fetch_osm_seed.py")
+    }
         Set-Location $Root
         $env:PYTHONPATH = (Join-Path $Root "services\dbt")
         python (Join-Path $Root "services\dbt\local\build_warehouse.py")
@@ -138,6 +142,7 @@ switch ($Target) {
     }
     "demo" {
         Set-Location $Root
+        python (Join-Path $Root "scripts\fetch_osm_seed.py")
         docker compose -f $ComposeFile up -d
         traffic-producer --sink broker --bootstrap-servers localhost:19092 --max-batches 1
         csmp-flink-job --mode stream --from-earliest --idle-seconds 2 --landing-db "$Root\data\landing.db"

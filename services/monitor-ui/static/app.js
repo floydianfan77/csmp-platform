@@ -17,11 +17,17 @@ const FRESHNESS_PT = {
   UNKNOWN: "Sem dados",
 };
 
-const map = L.map("map", { zoomControl: true }).setView(CHAPECO_CENTER, 14);
+const map = L.map("map", { zoomControl: true }).setView(CHAPECO_CENTER, 13);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   maxZoom: 19,
 }).addTo(map);
+
+const markerCluster = L.markerClusterGroup({
+  showCoverageOnHover: false,
+  maxClusterRadius: 45,
+});
+map.addLayer(markerCluster);
 
 const markers = new Map();
 let activeId = null;
@@ -55,6 +61,13 @@ function markerOptions(item) {
 
 function popupHtml(item) {
   const name = item.display_name || item.intersection_id;
+  if (item.window_end === "1970-01-01T00:00:00Z") {
+    return `
+      <div class="popup-title">${name}</div>
+      <div>Sem telemetria recente</div>
+      <div class="popup-meta">Semáforo cadastrado (OpenStreetMap)</div>
+    `;
+  }
   const state = SIGNAL_PT[item.signal_state] || item.signal_state;
   const stop = item.avg_stop_duration_seconds?.toFixed(1) ?? "—";
   const speed = item.avg_vehicle_speed_kmh?.toFixed(1) ?? "—";
@@ -82,7 +95,10 @@ function renderList(items) {
     if (item.intersection_id === activeId) li.classList.add("active");
 
     const name = item.display_name || item.intersection_id;
-    const state = SIGNAL_PT[item.signal_state] || item.signal_state;
+    const state =
+      item.window_end === "1970-01-01T00:00:00Z"
+        ? "Sem telemetria"
+        : SIGNAL_PT[item.signal_state] || item.signal_state;
     const tag = item.is_severe_bottleneck
       ? '<span class="bottleneck-tag">Gargalo</span>'
       : "";
@@ -130,8 +146,9 @@ function updateMarkers(items) {
 
     let marker = markers.get(item.intersection_id);
     if (!marker) {
-      marker = L.circleMarker(latlng, markerOptions(item)).addTo(map);
+      marker = L.circleMarker(latlng, markerOptions(item));
       marker.on("click", () => focusIntersection(item.intersection_id));
+      markerCluster.addLayer(marker);
       markers.set(item.intersection_id, marker);
     } else {
       marker.setLatLng(latlng);
@@ -142,13 +159,13 @@ function updateMarkers(items) {
 
   for (const [id, marker] of markers) {
     if (!seen.has(id)) {
-      map.removeLayer(marker);
+      markerCluster.removeLayer(marker);
       markers.delete(id);
     }
   }
 
   if (bounds.length > 0) {
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
   }
 }
 

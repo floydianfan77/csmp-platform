@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -16,12 +17,16 @@ from local.fixtures import write_landing_rows
 ROOT = Path(__file__).resolve().parents[2]
 SEED_CSV = ROOT / "services" / "dbt" / "seeds" / "chapeco_intersection_locations.csv"
 
-SEED_IDS = [
-    "osm-287654321",
-    "osm-287654322",
-    "osm-287654323",
-    "osm-287654324",
-]
+
+def _load_seed_ids(limit: int = 4) -> list[str]:
+    with SEED_CSV.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    if len(rows) < limit:
+        raise RuntimeError(f"Need at least {limit} rows in {SEED_CSV}")
+    return [row["intersection_id"] for row in rows[:limit]]
+
+
+SEED_IDS = _load_seed_ids(4)
 
 
 def recent_window_end(seconds_ago: float = 30.0) -> str:

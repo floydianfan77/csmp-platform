@@ -11,9 +11,15 @@ from local.fixtures import write_landing_rows
 
 ROOT = Path(__file__).resolve().parents[2]
 SEED_CSV = ROOT / "services" / "dbt" / "seeds" / "chapeco_intersection_locations.csv"
-
-KNOWN_ID = "osm-287654321"
 ORPHAN_ID = "unknown-999"
+
+
+def _known_id() -> str:
+    import csv
+
+    with SEED_CSV.open(encoding="utf-8", newline="") as handle:
+        row = next(csv.DictReader(handle))
+    return row["intersection_id"]
 
 
 def _landing_row(intersection_id: str) -> dict:
@@ -30,14 +36,15 @@ def _landing_row(intersection_id: str) -> dict:
 
 def test_at005_known_intersection_gets_geography(tmp_path):
     landing_db = tmp_path / "landing.db"
-    write_landing_rows(landing_db, [_landing_row(KNOWN_ID)])
+    known_id = _known_id()
+    write_landing_rows(landing_db, [_landing_row(known_id)])
     con = run_pipeline(landing_db=landing_db, seed_csv=SEED_CSV)
 
     seed = con.execute(
         f"""
         SELECT latitude, longitude
         FROM chapeco_intersection_locations
-        WHERE intersection_id = '{KNOWN_ID}'
+        WHERE intersection_id = '{known_id}'
         """
     ).fetchone()
     core = con.execute(
@@ -47,7 +54,7 @@ def test_at005_known_intersection_gets_geography(tmp_path):
             ST_X(spatial_geography_point) AS lon,
             ST_Y(spatial_geography_point) AS lat
         FROM core_traffic_signals
-        WHERE intersection_id = '{KNOWN_ID}'
+        WHERE intersection_id = '{known_id}'
         """
     ).fetchone()
 
