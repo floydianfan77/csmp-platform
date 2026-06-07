@@ -9,6 +9,28 @@ behind it, and next steps. Maintained at the end of each session so the project'
 
 ---
 
+## Session 7 — 2026-06-07 — Phase 6 (monitor UI)
+
+### Context
+OQ-1 resolved for v0.2: map UI on top of the working Monitor API.
+
+### Decisions
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Map library | Leaflet + OpenStreetMap | No API key; simple static assets |
+| Hosting | Mount `/app` on monitor-api | One server, no CORS friction |
+| Copy | pt-BR (OQ-3) | Constitution + seed display names |
+
+### Actions
+- Added `services/monitor-ui/static/` (HTML/CSS/JS).
+- FastAPI serves UI; `/` redirects to `/app/`.
+- AT-006: 5 contract + 4 acceptance tests.
+
+### Next steps
+- Portfolio polish: README hero, optional screenshot in `docs/assets/`.
+
+---
+
 ## Session 6 — 2026-06-07 — Phase 5 (monitor API)
 
 ### Context

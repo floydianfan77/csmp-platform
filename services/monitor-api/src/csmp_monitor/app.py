@@ -12,6 +12,23 @@ from csmp_monitor.config import settings
 from csmp_monitor.repository import MonitorRepository
 from csmp_monitor.schemas import ErrorResponse, HealthResponse, IntersectionListResponse, IntersectionStatus
 
+UI_STATIC_DIR = (
+    Path(__file__).resolve().parents[3] / "monitor-ui" / "static"
+)
+
+
+def _mount_ui(app: FastAPI) -> None:
+    if not UI_STATIC_DIR.is_dir():
+        return
+    from fastapi.responses import RedirectResponse
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/app", StaticFiles(directory=str(UI_STATIC_DIR), html=True), name="monitor-ui")
+
+    @app.get("/", include_in_schema=False)
+    def redirect_to_ui():
+        return RedirectResponse(url="/app/")
+
 
 def _open_duckdb_readonly() -> duckdb.DuckDBPyConnection:
     path = Path(settings.duckdb_path)
@@ -78,6 +95,7 @@ def create_app(*, repository: MonitorRepository | None = None) -> FastAPI:
             )
         return item
 
+    _mount_ui(app)
     return app
 
 

@@ -21,6 +21,7 @@ function Show-Help {
     Write-Host "  test-warehouse    AT-003 + AT-005 (DuckDB local dbt pipeline)"
     Write-Host "  install-monitor   Install monitor API service"
     Write-Host "  test-monitor      AT-004 monitor API tests"
+    Write-Host "  test-ui           AT-006 monitor UI contract tests"
     Write-Host "  warehouse         landing.db -> csmp.duckdb (required before monitor-api)"
     Write-Host "  monitor-api       Build warehouse if needed, run API on :8000"
     Write-Host "  aggregate         Kafka -> SQLite landing (drain topic, ~3s)"
@@ -73,6 +74,10 @@ switch ($Target) {
         Set-Location $Root
         pytest tests/acceptance/test_at004_monitor_api.py -v
     }
+    "test-ui" {
+        Set-Location $Root
+        pytest tests/contract/test_monitor_ui.py tests/acceptance/test_at006_monitor_ui.py -v
+    }
     "warehouse" {
         Set-Location $Root
         $env:PYTHONPATH = (Join-Path $Root "services\dbt")
@@ -94,8 +99,18 @@ switch ($Target) {
             & $PSCommandPath warehouse
         }
         $env:CSMP_MONITOR_DUCKDB_PATH = $DuckDb
-        Write-Host "[monitor-api] http://127.0.0.1:8000/docs  (Ctrl+C to stop)"
-        csmp-monitor-api
+        $Port = 8000
+        $InUse = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+        if ($InUse) {
+            $Pid = $InUse.OwningProcess | Select-Object -First 1
+            Write-Host "[monitor-api] port $Port already in use (PID $Pid)."
+            Write-Host "  Stop it:  Stop-Process -Id $Pid -Force"
+            Write-Host "  Or use:   csmp-monitor-api --port 8001"
+            exit 1
+        }
+        Write-Host "[monitor-api] http://127.0.0.1:$Port/app/  (map UI)"
+        Write-Host "[monitor-api] http://127.0.0.1:$Port/docs   (API)  Ctrl+C to stop"
+        csmp-monitor-api --port $Port
     }
     "test-acceptance" {
         Set-Location $Root
@@ -107,6 +122,7 @@ switch ($Target) {
         pytest services/flink-job/tests/test_at002_window.py -v
         pytest tests/acceptance/test_at003_bottleneck.py tests/acceptance/test_at005_spatial.py -v
         pytest tests/acceptance/test_at004_monitor_api.py -v
+        pytest tests/contract/test_monitor_ui.py tests/acceptance/test_at006_monitor_ui.py -v
         pytest tests/acceptance -v -m integration
     }
     "producer" {
@@ -119,7 +135,7 @@ switch ($Target) {
         traffic-producer --sink broker --bootstrap-servers localhost:19092 --max-batches 1
         csmp-flink-job --mode stream --from-earliest --idle-seconds 2 --landing-db "$Root\data\landing.db"
         & $PSCommandPath warehouse
-        Write-Host "[demo] ready. Run: .\Makefile.ps1 monitor-api"
+        Write-Host "[demo] ready. Run: .\Makefile.ps1 monitor-api  then open http://127.0.0.1:8000/app/"
     }
     default {
         Write-Error "Unknown target: $Target"

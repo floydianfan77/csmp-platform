@@ -29,7 +29,7 @@ Or use the DuckDB pipeline to build `data/csmp.duckdb` from `data/landing.db`:
 python -c "from pathlib import Path; from local.engine import run_pipeline; run_pipeline(landing_db=Path('data/landing.db'), seed_csv=Path('services/dbt/seeds/chapeco_intersection_locations.csv'), duckdb_path=Path('data/csmp.duckdb'))"
 ```
 
-Open http://localhost:8000/docs for Swagger UI.
+Open http://localhost:8000/app/ for the map UI (Phase 6) or `/docs` for Swagger.
 
 ## Tests
 

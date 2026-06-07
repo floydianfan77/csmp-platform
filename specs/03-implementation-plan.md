@@ -78,13 +78,13 @@
 
 ---
 
-## Phase 6 — Monitor UI (optional v0.2)
+## Phase 6 — Monitor UI (optional v0.2) ✅
 
-- Map layer (Leaflet/Mapbox) consuming monitor API
-- pt-BR labels
-- Bottleneck highlights
+- Map layer (Leaflet) consuming monitor API at `/app/`
+- pt-BR labels and bottleneck highlights
+- AT-006 contract + acceptance tests pass
 
-Blocked on OQ-1 if API-only for v0.1.
+**v0.1 portfolio complete.**
 
 ---
 
@@ -97,6 +97,7 @@ Semaphores Project/
 │   ├── producer/
 │   ├── flink-job/
 │   ├── monitor-api/
+│   └── monitor-ui/
 │   └── dbt/
 ├── infra/
 │   └── docker-compose.yml

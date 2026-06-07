@@ -51,8 +51,10 @@ Prove the spec is testable before streaming code exists.
 - [x] `/health` freshness vs NFR-001 (≤120s)
 - [x] AT-004 passes
 
-## Phase 6 — Monitor UI (optional v0.2)
+## Phase 6 — Monitor UI ✅
 
-- [ ] Map layer (Leaflet/Mapbox) consuming monitor API
-- [ ] pt-BR labels and bottleneck highlights
-- [ ] Screenshot in `docs/assets/`
+- [x] Leaflet map at http://127.0.0.1:8000/app/
+- [x] pt-BR labels and bottleneck highlights
+- [x] AT-006 passes
+
+**CSMP v0.1 portfolio complete.**
